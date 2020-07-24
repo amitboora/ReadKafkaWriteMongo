@@ -1,5 +1,5 @@
 FROM openjdk:8
-COPY . /usr/src/myapp
-WORKDIR /usr/src/myapp
-RUN javac Main.java
-CMD ["java", "Main"]
+WORKDIR /
+ADD ReadKafkaWriteMongo-1.0-SNAPSHOT.jar ReadKafkaWriteMongo-1.0-SNAPSHOT.jar
+COPY docker-entrypoint.sh /
+ENTRYPOINT ["/docker-entrypoint.sh"]
