@@ -1,0 +1,28 @@
+---
+- hosts: localhost
+  #become: true
+  tasks:
+  - name: stop if we have old docker container
+    command: docker stop kafka-mongo-container
+    ignore_errors: yes
+
+  - name: remove stopped docker container
+    command: docker rm kafka-mongo-container
+    ignore_errors: yes
+
+  - name: remove current docker image
+    command: docker rmi kafka-mongo-image
+    ignore_errors: yes
+#    register: result
+#    failed_when:
+#      - result.rc == 0
+#      - '"docker" not in result.stdout'
+
+
+  - name: building docker image
+    command: docker build -t kafka-mongo-image .
+    #args:
+    #  chdir: /opt/docker
+
+  - name: creating docker image
+    command: docker run -d --name kafka-mongo-container -p 8080:8080 kafka-mongo-image
