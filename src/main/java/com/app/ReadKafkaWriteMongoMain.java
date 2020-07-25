@@ -22,21 +22,33 @@ import static com.mongodb.client.model.Filters.eq;
 
 public class ReadKafkaWriteMongoMain {
 
-    private static MongoCollection<Document> mongoCollection;
+    //private static Logger logger = LogManager.getLogger(ReadKafkaWriteMongoMain.class.getName());
 
+
+    private static MongoCollection<Document> mongoCollection;
+    private static String hostName = "localhost";
 
     public static void main(String[] args) throws Exception{
 
+        //logger.info("Application started ........");
+
+        if(args != null && args.length > 0){
+            hostName = args[0];
+        }
+
         connectToMongo();
-        consumeOutput("localhost:9092");
+        consumeOutput(hostName+":19092");
 
     }
 
+
     private static void connectToMongo(){
-        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb://localhost:27017"));
+        MongoClient mongoClient = new MongoClient(new MongoClientURI("mongodb://"+hostName+":27017"));
         MongoDatabase database = mongoClient.getDatabase("Kafka_Mongo");
         mongoCollection = database.getCollection("test", Document.class)
                 .withReadPreference(ReadPreference.primaryPreferred());
+        System.out.println("connected to mongo");
+        System.out.println("Record count in mongo : "+mongoCollection.count());
     }
 
 
@@ -63,7 +75,7 @@ public class ReadKafkaWriteMongoMain {
 
 
     private static void consumeOutput(String bootstrapServers) throws Exception{
-        System.out.println("Consumer called");
+        System.out.println("Consumer called, connecting to : " + bootstrapServers);
         final Properties consumerProperties = new Properties();
         consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         consumerProperties.put(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, "10");
@@ -79,7 +91,8 @@ public class ReadKafkaWriteMongoMain {
 
         consumer.subscribe(Collections.singleton("test-topic"));
         while (true) {
-            ConsumerRecords<String, String> consumerRecords = consumer.poll(Long.MAX_VALUE);
+            System.out.println("Starting pooling Records ...");
+            ConsumerRecords<String, String> consumerRecords = consumer.poll(2000);
             System.out.println("Pooled Records : " + consumerRecords.count());
             for (ConsumerRecord<String, String> consumerRecord : consumerRecords) {
                 System.out.println("Consumed Record with *******"+consumerRecord.key());
